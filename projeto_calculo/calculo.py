@@ -21,18 +21,21 @@ app.add_middleware(
 )
 
 def tratar_expressao(expr: str) -> str:
-    """Trata a entrada do usuário para aceitar sintaxe matemática humana sem quebrar funções trigonométricas."""
+    """Trata a entrada do usuário para aceitar sintaxe matemática humana."""
     if not expr:
         return expr
 
-    # 1. Converte caracteres Unicode sobrescritos (ex: ², ³, ⁴, ⁻³)
+    # 1. Converter tudo para minúsculo para que 'X' vire 'x' (e COS/Sin virem cos/sin)
+    expr = expr.lower()
+
+    # 2. Converte caracteres Unicode sobrescritos (ex: ², ³, ⁴, ⁻³)
     padrao_sobrescritos = r'([\u00B2\u00B3\u00B9\u2070-\u209C]+)'
     def reemp_sobrescrito(match):
         texto = unicodedata.normalize('NFKC', match.group(1))
         return f"^({texto})"
     expr = re.sub(padrao_sobrescritos, reemp_sobrescrito, expr)
 
-    # 2. Transforma '^' em '**'
+    # 3. Transforma '^' em '**'
     expr = expr.replace('^', '**')
 
     # Lista de funções matemáticas conhecidas para proteger
@@ -42,14 +45,12 @@ def tratar_expressao(expr: str) -> str:
     for func in funcoes:
         expr = re.sub(rf'([0-9a-zA-Z\)])\s*{func}', rf'\1*{func}', expr)
 
-    # 3. Substitui ponto de multiplicação por '*'
+    # 4. Substitui ponto de multiplicação por '*'
     expr = re.sub(r'(\d)\.(?=[a-zA-Z\(])', r'\1*', expr)
     expr = re.sub(r'([a-zA-Z\)])\.(?=[a-zA-Z0-9\(])', r'\1*', expr)
 
-    # 4. Multiplicação implícita genérica (evitando quebrar nomes de funções)
-    # Número seguido de 'x' ou parêntese
+    # 5. Multiplicação implícita genérica
     expr = re.sub(r'(\d)\s*([xX\(])', r'\1*\2', expr)
-    # Fecha parêntese seguido de número ou parêntese/variável
     expr = re.sub(r'(\))\s*([\dxX\(])', r'\1*\2', expr)
 
     return expr
