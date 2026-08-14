@@ -8,7 +8,7 @@ from sympy.integrals.manualintegrate import manualintegrate, integral_steps
 app = FastAPI()
 @app.get("/")
 def home():
-    return FileResponse("Projeto Cálculo/index.html")
+    return FileResponse("index.html")
 
 app.add_middleware(
     CORSMiddleware,
