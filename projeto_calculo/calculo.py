@@ -21,39 +21,56 @@ app.add_middleware(
 )
 
 def tratar_expressao(expr: str) -> str:
-    """Trata a entrada do usuário para aceitar sintaxe matemática humana."""
+    """Trata a entrada do usuário para aceitar sintaxe matemática humana, incluindo equivalências e proteções."""
     if not expr:
         return expr
 
-    # 1. Converter tudo para minúsculo para aceitar maiúsculas/minúsculas
+    # 1. Converter tudo para minúsculo
     expr = expr.lower()
 
-    # 2. Converte caracteres Unicode sobrescritos (ex: ², ³, etc.)
+    # 2. Equivalências (Aliases) - Substitui variações em PT/EN antes de qualquer coisa
+    equivalencias = {
+        'sen': 'sin',
+        'tg': 'tan',
+        'arctg': 'atan',
+        'arctan': 'atan',
+        'arcsen': 'asin',
+        'arcsin': 'asin'
+    }
+    for termo, original in equivalencias.items():
+        expr = re.sub(rf'\b{termo}\b', original, expr)
+
+    # 3. Converte caracteres Unicode sobrescritos (ex: ², ³, etc.)
     padrao_sobrescritos = r'([\u00B2\u00B3\u00B9\u2070-\u209C]+)'
     def reemp_sobrescrito(match):
         texto = unicodedata.normalize('NFKC', match.group(1))
         return f"^({texto})"
     expr = re.sub(padrao_sobrescritos, reemp_sobrescrito, expr)
 
-    # 3. Transforma '^' em '**'
+    # 4. Transforma '^' em '**'
     expr = expr.replace('^', '**')
 
-    # Lista de funções matemáticas (incluindo as hiperbólicas) para proteger
+    # Lista completa de funções para processamento
     funcoes = [
         'sinh', 'cosh', 'tanh', 'sech', 'csch', 'coth',
         'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 
         'log', 'ln', 'exp', 'sqrt'
     ]
-    
-    # Insere '*' entre número/variável e funções (ex: xsinh -> x*sinh | 2cosh -> 2*cosh)
+
+    # Proteção: Se digitar apenas o nome da função sem parenteses, adiciona (x)
+    for func in funcoes:
+        if expr.strip() == func:
+            expr = f"{func}(x)"
+
+    # Insere '*' entre número/variável e funções (ex: 2sin -> 2*sin)
     for func in funcoes:
         expr = re.sub(rf'([0-9a-zA-Z\)])\s*{func}', rf'\1*{func}', expr)
 
-    # 4. Substitui ponto de multiplicação por '*'
+    # 5. Substitui ponto de multiplicação por '*'
     expr = re.sub(r'(\d)\.(?=[a-zA-Z\(])', r'\1*', expr)
     expr = re.sub(r'([a-zA-Z\)])\.(?=[a-zA-Z0-9\(])', r'\1*', expr)
 
-    # 5. Multiplicação implícita genérica
+    # 6. Multiplicação implícita genérica
     expr = re.sub(r'(\d)\s*([xX\(])', r'\1*\2', expr)
     expr = re.sub(r'(\))\s*([\dxX\(])', r'\1*\2', expr)
 
