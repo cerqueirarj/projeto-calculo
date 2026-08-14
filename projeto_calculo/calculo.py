@@ -25,10 +25,10 @@ def tratar_expressao(expr: str) -> str:
     if not expr:
         return expr
 
-    # 1. Converter tudo para minúsculo para que 'X' vire 'x' (e COS/Sin virem cos/sin)
+    # 1. Converter tudo para minúsculo para aceitar maiúsculas/minúsculas
     expr = expr.lower()
 
-    # 2. Converte caracteres Unicode sobrescritos (ex: ², ³, ⁴, ⁻³)
+    # 2. Converte caracteres Unicode sobrescritos (ex: ², ³, etc.)
     padrao_sobrescritos = r'([\u00B2\u00B3\u00B9\u2070-\u209C]+)'
     def reemp_sobrescrito(match):
         texto = unicodedata.normalize('NFKC', match.group(1))
@@ -38,10 +38,14 @@ def tratar_expressao(expr: str) -> str:
     # 3. Transforma '^' em '**'
     expr = expr.replace('^', '**')
 
-    # Lista de funções matemáticas conhecidas para proteger
-    funcoes = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'exp', 'sqrt']
+    # Lista de funções matemáticas (incluindo as hiperbólicas) para proteger
+    funcoes = [
+        'sinh', 'cosh', 'tanh', 'sech', 'csch', 'coth',
+        'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 
+        'log', 'ln', 'exp', 'sqrt'
+    ]
     
-    # Insere '*' entre número/variável e funções (ex: xcos -> x*cos | 2sin -> 2*sin)
+    # Insere '*' entre número/variável e funções (ex: xsinh -> x*sinh | 2cosh -> 2*cosh)
     for func in funcoes:
         expr = re.sub(rf'([0-9a-zA-Z\)])\s*{func}', rf'\1*{func}', expr)
 
