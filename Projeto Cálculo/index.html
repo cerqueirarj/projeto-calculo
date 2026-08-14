@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Plataforma Completa de Cálculo I & II</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Estilos e Scripts do KaTeX com Auto-Render -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <!-- JSXGraph para Geometria Interativa -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraphcore.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraph.css" />
+</head>
+<body class="bg-slate-950 text-slate-100 p-4 md:p-8 font-sans min-h-screen">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Cabeçalho & Barra de Pesquisa -->
+    <header class="border-b border-slate-800 pb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-extrabold text-indigo-400">⚡ Plataforma Avançada de Cálculo</h1>
+        <p class="text-slate-400 text-sm mt-1">Intuição, Limites, Derivadas, Métodos de Integração, Teoremas e Python.</p>
+      </div>
+
+      <!-- Campo de Busca -->
+      <div class="relative w-full md:w-72">
+        <input id="input-busca" oninput="filtrarConteudo()" type="text" placeholder="🔍 Buscar teorema ou método..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500">
+      </div>
+    </header>
+
+    <!-- Navegação por Abas (Ordem Didática) -->
+    <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-2">
+      <button id="btn-tab1" onclick="mudarAba(1)" class="px-3 py-2 rounded-lg font-semibold bg-indigo-600 text-white text-xs md:text-sm">1. 👁️ Intuição Geométrica</button>
+      <button id="btn-tab2" onclick="mudarAba(2)" class="px-3 py-2 rounded-lg font-semibold bg-slate-800 text-slate-400 hover:text-white text-xs md:text-sm">2. 🎯 Limites & Continuidade</button>
+      <button id="btn-tab3" onclick="mudarAba(3)" class="px-3 py-2 rounded-lg font-semibold bg-slate-800 text-slate-400 hover:text-white text-xs md:text-sm">3. 📐 Derivadas & Teoremas</button>
+      <button id="btn-tab4" onclick="mudarAba(4)" class="px-3 py-2 rounded-lg font-semibold bg-slate-800 text-slate-400 hover:text-white text-xs md:text-sm">4. 📜 Teoremas de Integrais (TFC)</button>
+      <button id="btn-tab5" onclick="mudarAba(5)" class="px-3 py-2 rounded-lg font-semibold bg-slate-800 text-slate-400 hover:text-white text-xs md:text-sm">5. 🧩 Métodos de Integração</button>
+      <button id="btn-tab6" onclick="mudarAba(6)" class="px-3 py-2 rounded-lg font-semibold bg-slate-800 text-slate-400 hover:text-white text-xs md:text-sm">6. 📝 Exercícios Resolvidos</button>
+      <button id="btn-tab7" onclick="mudarAba(7)" class="px-3 py-2 rounded-lg font-semibold bg-slate-800 text-slate-400 hover:text-white text-xs md:text-sm">7. 🐍 Calculadora Python</button>
+    </div>
+
+    <!-- ABA 1: INTUIÇÃO GEOMÉTRICA -->
+    <!-- ABA 1: INTUIÇÃO GEOMÉTRICA -->
+    <main id="tab-1" class="space-y-6">
+      <!-- Caixa de Explicação Visual -->
+      <section class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-3">
+        <h2 class="text-xl font-semibold text-indigo-400">1. A Dualidade: Reta Tangente vs. Área Sob a Curva</h2>
+        <p class="text-slate-300 text-sm leading-relaxed">
+          Arraste o ponto rosa <b class="text-rose-400">P</b> ao longo da curva para observar como a <b class="text-rose-400">Reta Tangente</b> muda sua inclinação ($m = f'(x_0)$), representando a **taxa de variação instantânea**. A região sombreada em <b class="text-emerald-400">verde</b> representa o acúmulo da **Integral Definida**.
+        </p>
+      </section>
+      
+      <!-- Container do Gráfico Interativo JSXGraph -->
+      <div id="box-geometria" class="jxgbox w-full h-[450px] rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl"></div>
+    </main>
+
+    <!-- ABA 2: LIMITES & CONTINUIDADE -->
+    <main id="tab-2" class="hidden space-y-6">
+      <section class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+        <h2 class="text-xl font-semibold text-indigo-400">2. Teoremas Fundamentais de Limites e Continuidade</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="card-item bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">🥪 Teorema do Confronto (Sanduíche)</h3>
+            <p class="text-xs text-slate-400">Se $g(x) \le f(x) \le h(x)$ próximo de $a$ e $\lim_{x \to a} g(x) = \lim_{x \to a} h(x) = L$, então $\lim_{x \to a} f(x) = L$.</p>
+          </div>
+          <div class="card-item bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">🌉 Teorema do Valor Intermediário (TVI)</h3>
+            <p class="text-xs text-slate-400">Se $f$ é contínua em $[a,b]$ e $N$ está entre $f(a)$ e $f(b)$, existe $c \in (a,b)$ tal que $f(c) = N$. *(Garante a existência de raízes).*</p>
+          </div>
+          <div class="card-item bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">🏔️ Teorema de Weierstrass (Extremos)</h3>
+            <p class="text-xs text-slate-400">Toda função contínua em um intervalo fechado e limitado $[a,b]$ atinge um máximo e um mínimo absolutos.</p>
+          </div>
+          <div class="card-item bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">🚀 Regra de L'Hôpital</h3>
+            <p class="text-xs text-slate-400">Para indeterminações $\left[\frac{0}{0}\right]$ ou $\left[\frac{\infty}{\infty}\right]$, deriva-se numerador e denominador: $\lim_{x \to a}\frac{f(x)}{g(x)} = \lim_{x \to a}\frac{f'(x)}{g'(x)}$.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ABA 3: DERIVADAS & TEOREMAS -->
+    <main id="tab-3" class="hidden space-y-6">
+      <section class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
+        <h2 class="text-xl font-semibold text-indigo-400">3. Técnicas e Teoremas do Cálculo Diferencial</h2>
+        
+        <!-- Regras Básicas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="card-item bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">⛓️ Regra da Cadeia</h3>
+            <p class="text-xs text-slate-400">Para derivada de funções compostas: $\frac{d}{dx}[f(g(x))] = f'(g(x)) \cdot g'(x)$.</p>
+          </div>
+          <div class="card-item bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">✖️ Produto e Quociente</h3>
+            <p class="text-xs text-slate-400">• Produto: $(f \cdot g)' = f'g + fg'$</p>
+            <p class="text-xs text-slate-400">• Quociente: $\left(\frac{f}{g}\right)' = \frac{f'g - fg'}{g^2}$</p>
+          </div>
+        </div>
+
+        <!-- Teoremas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="card-item bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">📍 Teorema de Fermat</h3>
+            <p class="text-xs text-slate-400">Se $f$ tem um extremo local em $c$ e $f'(c)$ existe, então $f'(c) = 0$. *(Pontos Críticos)*.</p>
+          </div>
+          <div class="card-item bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">⚖️ Teorema de Rolle</h3>
+            <p class="text-xs text-slate-400">Se $f$ é contínua em $[a,b]$, derivável em $(a,b)$ e $f(a) = f(b)$, existe $c \in (a,b)$ tal que $f'(c) = 0$.</p>
+          </div>
+          <div class="card-item bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">📈 Teorema do Valor Médio (TVM)</h3>
+            <p class="text-xs text-slate-400">Garante um ponto $c$ onde a tangente instantânea é paralela à reta secante: $f'(c) = \frac{f(b) - f(a)}{b - a}$.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ABA 4: TEOREMAS DE INTEGRAIS -->
+    <main id="tab-4" class="hidden space-y-6">
+      <section class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
+        <h2 class="text-xl font-semibold text-indigo-400">4. Teoremas do Cálculo Integral</h2>
+
+        <div class="card-item bg-slate-950 p-5 rounded-xl border border-indigo-500/40 space-y-3">
+          <h3 class="font-bold text-indigo-300 text-lg">👑 Teorema Fundamental do Cálculo (TFC)</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-900 p-3 rounded">
+              <p class="text-xs font-bold text-slate-400 uppercase mb-1">Parte 1 (Acumulação)</p>
+              <p class="text-xs text-slate-200">$\frac{d}{dx}\left(\int_{a}^{x} f(t)dt\right) = f(x)$</p>
+            </div>
+            <div class="bg-slate-900 p-3 rounded">
+              <p class="text-xs font-bold text-slate-400 uppercase mb-1">Parte 2 (Avaliação)</p>
+              <p class="text-xs text-slate-200">$\int_{a}^{b} f(x)dx = F(b) - F(a)$</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="card-item bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">📏 Teorema do Valor Médio para Integrais</h3>
+            <p class="text-xs text-slate-400">Existe $c \in [a,b]$ onde a altura do retângulo é o valor médio: $f(c) = \frac{1}{b - a} \int_{a}^{b} f(x)dx$.</p>
+          </div>
+          <div class="card-item bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-slate-200">🔄 Mudança de Variável na Definida</h3>
+            <p class="text-xs text-slate-400">Ao mudar a variável para $u = g(x)$, altera-se os limites: $\int_{a}^{b} f(g(x))g'(x)dx = \int_{g(a)}^{g(b)} f(u)du$.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ABA 5: MÉTODOS DE INTEGRAÇÃO -->
+    <main id="tab-5" class="hidden space-y-6">
+      <section class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
+        <h2 class="text-xl font-semibold text-indigo-400">5. Guia Completo de Métodos de Integração</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="card-item bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-indigo-300">1. Mudança de Variável ($u$-substituição)</h3>
+            <p class="text-xs text-slate-400">$\int f(g(x))g'(x)dx = \int f(u)du$ com $u = g(x)$.</p>
+          </div>
+          <div class="card-item bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-indigo-300">2. Integração por Partes</h3>
+            <p class="text-xs text-slate-400">$\int u \, dv = uv - \int v \, du$ (Prioridade **LIATE** para a escolha do $u$).</p>
+          </div>
+          <div class="card-item bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-indigo-300">3. Substituição Trigonométrica</h3>
+            <ul class="text-xs text-slate-300 space-y-1">
+              <li>• $\sqrt{a^2 - x^2} \implies x = a \sin(\theta)$</li>
+              <li>• $\sqrt{a^2 + x^2} \implies x = a \tan(\theta)$</li>
+              <li>• $\sqrt{x^2 - a^2} \implies x = a \sec(\theta)$</li>
+            </ul>
+          </div>
+          <div class="card-item bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-indigo-300">4. Frações Parciais</h3>
+            <p class="text-xs text-slate-400">Decomposição racional: $\frac{P(x)}{Q(x)} = \frac{A}{x - a} + \frac{Bx + C}{x^2 + px + q}$.</p>
+          </div>
+          <div class="card-item bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-indigo-300">5. Substituição Universal (Weierstrass)</h3>
+            <p class="text-xs text-slate-400">Converte expressões trigonométricas fazendo $t = \tan(x/2)$.</p>
+          </div>
+          <div class="card-item bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+            <h3 class="font-bold text-indigo-300">6. Integrais Impróprias</h3>
+            <p class="text-xs text-slate-400">Avalia limites infinitos ou descontinuidades: $\int_{a}^{\infty} f(x)dx = \lim_{t \to \infty} \int_{a}^{t} f(x)dx$.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ABA 6: EXERCÍCIOS RESOLVIDOS -->
+    <main id="tab-6" class="hidden space-y-6">
+      <section class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+        <h2 class="text-xl font-semibold text-indigo-400">6. Prática & Exercícios Passo a Passo</h2>
+        
+        <!-- Exercício 1 -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-slate-200 text-sm">Problema 1: Integração por Partes</h3>
+            <span class="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">Médio</span>
+          </div>
+          <p class="text-xs text-slate-300">Calcule a integral indefinida: $\int x e^x dx$</p>
+          <details class="text-xs text-slate-400 bg-slate-900 p-3 rounded-lg border border-slate-800">
+            <summary class="cursor-pointer font-semibold text-indigo-400 hover:text-indigo-300">Ver Resolução Passo a Passo</summary>
+            <div class="mt-2 space-y-1">
+              <p>1. Escolha $u = x \implies du = dx$ e $dv = e^x dx \implies v = e^x$.</p>
+              <p>2. Aplique a fórmula $\int u dv = uv - \int v du$:</p>
+              <p class="text-emerald-400 font-mono mt-1">Resultado: $x e^x - e^x + C = e^x(x - 1) + C$</p>
+            </div>
+          </details>
+        </div>
+
+        <!-- Exercício 2 -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="font-bold text-slate-200 text-sm">Problema 2: Regra da Cadeia</h3>
+            <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">Fácil</span>
+          </div>
+          <p class="text-xs text-slate-300">Calcule a derivada de $f(x) = \sin(3x^2 + 1)$</p>
+          <details class="text-xs text-slate-400 bg-slate-900 p-3 rounded-lg border border-slate-800">
+            <summary class="cursor-pointer font-semibold text-indigo-400 hover:text-indigo-300">Ver Resolução Passo a Passo</summary>
+            <div class="mt-2 space-y-1">
+              <p>1. Externa: $f(u) = \sin(u) \implies f'(u) = \cos(u)$</p>
+              <p>2. Interna: $u = 3x^2 + 1 \implies u' = 6x$</p>
+              <p class="text-emerald-400 font-mono mt-1">Resultado: $f'(x) = 6x \cos(3x^2 + 1)$</p>
+            </div>
+          </details>
+        </div>
+      </section>
+      <!-- SEÇÃO DE DERIVADAS E INTEGRAIS TABELADAS -->
+<section class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+    <div>
+      <h2 class="text-xl font-semibold text-indigo-400">📊 Tabela de Derivadas e Integrais Imediatas</h2>
+      <p class="text-xs text-slate-400 mt-1">Guia de consulta rápida para regras fundamentais e formas primitivas ($C \in \mathbb{R}$).</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    
+    <!-- TABELA DE DERIVADAS -->
+    <div class="bg-slate-950 p-4 rounded-xl border border-rose-500/30 space-y-3">
+      <h3 class="text-rose-400 font-bold text-sm flex items-center gap-2">
+        <span>📐</span> Derivadas Fundamentais
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left text-slate-300">
+          <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+            <tr>
+              <th class="py-2 px-3">Função $f(x)$</th>
+              <th class="py-2 px-3">Derivada $f'(x)$</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 font-mono">
+            <tr><td class="py-2 px-3">$c$ (constante)</td><td class="py-2 px-3 text-rose-300">$0$</td></tr>
+            <tr><td class="py-2 px-3">$x^n$</td><td class="py-2 px-3 text-rose-300">$n \cdot x^{n-1}$</td></tr>
+            <tr><td class="py-2 px-3">$e^x$</td><td class="py-2 px-3 text-rose-300">$e^x$</td></tr>
+            <tr><td class="py-2 px-3">$a^x$</td><td class="py-2 px-3 text-rose-300">$a^x \ln(a)$</td></tr>
+            <tr><td class="py-2 px-3">$\ln(x)$</td><td class="py-2 px-3 text-rose-300">$\frac{1}{x}$</td></tr>
+            <tr><td class="py-2 px-3">$\sin(x)$</td><td class="py-2 px-3 text-rose-300">$\cos(x)$</td></tr>
+            <tr><td class="py-2 px-3">$\cos(x)$</td><td class="py-2 px-3 text-rose-300">$-\sin(x)$</td></tr>
+            <tr><td class="py-2 px-3">$\tan(x)$</td><td class="py-2 px-3 text-rose-300">$\sec^2(x)$</td></tr>
+            <tr><td class="py-2 px-3">$\sec(x)$</td><td class="py-2 px-3 text-rose-300">$\sec(x)\tan(x)$</td></tr>
+            <tr><td class="py-2 px-3">$\arcsin(x)$</td><td class="py-2 px-3 text-rose-300">$\frac{1}{\sqrt{1-x^2}}$</td></tr>
+            <tr><td class="py-2 px-3">$\arctan(x)$</td><td class="py-2 px-3 text-rose-300">$\frac{1}{1+x^2}$</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TABELA DE INTEGRAIS -->
+    <div class="bg-slate-950 p-4 rounded-xl border border-indigo-500/30 space-y-3">
+      <h3 class="text-indigo-400 font-bold text-sm flex items-center gap-2">
+        <span>🧩</span> Integrais Imediatas
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left text-slate-300">
+          <thead class="bg-slate-900 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+            <tr>
+              <th class="py-2 px-3">Integrando $f(x)$</th>
+              <th class="py-2 px-3">Primitive $\int f(x)dx$</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 font-mono">
+            <tr><td class="py-2 px-3">$k \, dx$</td><td class="py-2 px-3 text-indigo-300">$kx + C$</td></tr>
+            <tr><td class="py-2 px-3">$x^n \, dx \quad (n \neq -1)$</td><td class="py-2 px-3 text-indigo-300">$\frac{x^{n+1}}{n+1} + C$</td></tr>
+            <tr><td class="py-2 px-3">$\frac{1}{x} \, dx$</td><td class="py-2 px-3 text-indigo-300">$\ln|x| + C$</td></tr>
+            <tr><td class="py-2 px-3">$e^x \, dx$</td><td class="py-2 px-3 text-indigo-300">$e^x + C$</td></tr>
+            <tr><td class="py-2 px-3">$a^x \, dx$</td><td class="py-2 px-3 text-indigo-300">$\frac{a^x}{\ln(a)} + C$</td></tr>
+            <tr><td class="py-2 px-3">$\cos(x) \, dx$</td><td class="py-2 px-3 text-indigo-300">$\sin(x) + C$</td></tr>
+            <tr><td class="py-2 px-3">$\sin(x) \, dx$</td><td class="py-2 px-3 text-indigo-300">$-\cos(x) + C$</td></tr>
+            <tr><td class="py-2 px-3">$\sec^2(x) \, dx$</td><td class="py-2 px-3 text-indigo-300">$\tan(x) + C$</td></tr>
+            <tr><td class="py-2 px-3">$\sec(x)\tan(x) \, dx$</td><td class="py-2 px-3 text-indigo-300">$\sec(x) + C$</td></tr>
+            <tr><td class="py-2 px-3">$\frac{1}{a^2 + x^2} \, dx$</td><td class="py-2 px-3 text-indigo-300">$\frac{1}{a}\arctan\left(\frac{x}{a}\right) + C$</td></tr>
+            <tr><td class="py-2 px-3">$\frac{1}{\sqrt{a^2 - x^2}} \, dx$</td><td class="py-2 px-3 text-indigo-300">$\arcsin\left(\frac{x}{a}\right) + C$</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+    </main>
+
+    <!-- ABA 7: CALCULADORA PYTHON -->
+    <!-- ABA 7: CALCULADORA COM PASSO A PASSO -->
+    <main id="tab-7" class="hidden space-y-6">
+      <section class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
+        <h2 class="text-xl font-semibold text-indigo-400">7. Calculadora Detalhada (Derivada & Integral com Técnicas)</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="md:col-span-2 space-y-1">
+            <label class="text-xs font-semibold text-slate-400 uppercase">Função f(x)</label>
+            <input id="input-funcao" type="text" value="x**2 * cos(x)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-indigo-300 font-mono text-sm focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-semibold text-slate-400 uppercase">Ponto Tangente (x₀)</label>
+            <input id="input-x0" type="number" value="1" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-indigo-300 font-mono text-sm focus:outline-none focus:border-indigo-500">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-semibold text-slate-400 uppercase">Limites Definitida [a, b]</label>
+            <div class="flex gap-2">
+              <input id="input-a" type="number" value="0" placeholder="a" class="w-1/2 bg-slate-950 border border-slate-700 rounded-lg px-2 py-2 text-indigo-300 font-mono text-sm text-center">
+              <input id="input-b" type="number" value="3.14" placeholder="b" class="w-1/2 bg-slate-950 border border-slate-700 rounded-lg px-2 py-2 text-indigo-300 font-mono text-sm text-center">
+            </div>
+          </div>
+        </div>
+
+        <button onclick="mandarParaOPython()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl shadow-lg transition text-sm">
+          Gerar Resolução Detalhada 🐍
+        </button>
+
+        <!-- Painel de Resultados Detalhados -->
+        <div id="painel-resultado" class="hidden space-y-6">
+          
+          <!-- Seção Derivada -->
+          <div class="bg-slate-950 p-5 rounded-xl border border-emerald-500/30 space-y-3">
+            <h3 class="text-emerald-400 font-bold text-base flex items-center gap-2">📐 Detalhamento da Derivada: <span id="resultado-derivada"></span></h3>
+            
+            <!-- Campo da substituição no ponto x0 -->
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 flex justify-between items-center text-xs">
+              <span class="text-slate-300 font-semibold">Valor da Derivada no Ponto $f'(x_0)$:</span>
+              <span id="resultado-ponto" class="font-mono font-bold text-emerald-300"></span>
+            </div>
+
+            <div id="passos-derivada" class="text-xs text-slate-300 space-y-1 pl-2 border-l-2 border-emerald-500/40"></div>
+          </div>
+
+          <!-- Seção Integral -->
+          <div class="bg-slate-950 p-5 rounded-xl border border-indigo-500/30 space-y-3">
+            <h3 class="text-indigo-400 font-bold text-base flex items-center gap-2">🧩 Detalhamento da Integral: <span id="resultado-integral"></span></h3>
+            <div id="passos-integral" class="text-xs text-slate-300 space-y-1 pl-2 border-l-2 border-indigo-500/40"></div>
+            <p class="text-xs font-mono text-amber-400 pt-2 border-t border-slate-800">Área Definitida $\int_{a}^{b} f(x)dx$: <span id="resultado-definitida"></span></p>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <script>
+    // Gerenciador de Abas (1 a 7)
+    function mudarAba(num) {
+      [1, 2, 3, 4, 5, 6, 7].forEach(n => {
+        let tab = document.getElementById(`tab-${n}`);
+        let btn = document.getElementById(`btn-tab${n}`);
+        if (tab) tab.classList.add('hidden');
+        if (btn) btn.className = "px-3 py-2 rounded-lg font-semibold bg-slate-800 text-slate-400 hover:text-white text-xs md:text-sm";
+      });
+      
+      let currentTab = document.getElementById(`tab-${num}`);
+      let currentBtn = document.getElementById(`btn-tab${num}`);
+      if (currentTab) currentTab.classList.remove('hidden');
+      if (currentBtn) currentBtn.className = "px-3 py-2 rounded-lg font-semibold bg-indigo-600 text-white text-xs md:text-sm";
+
+      if(num === 1 && !window.boardRendered) initGrafico();
+    }
+
+    // Filtro de Pesquisa Instantânea
+    function filtrarConteudo() {
+      const termo = document.getElementById('input-busca').value.toLowerCase();
+      const cards = document.querySelectorAll('.card-item');
+
+      cards.forEach(card => {
+        const texto = card.innerText.toLowerCase();
+        if (texto.includes(termo)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Inicializador do Gráfico Interativo na Aba 1
+    // Inicializador do Gráfico Interativo na Aba 1 (Design da Tangente Aprimorado)
+    // Inicializador do Gráfico com Reta Tangente FINITA
+    function initGrafico() {
+      window.boardRendered = true;
+      
+      var board = JXG.JSXGraph.initBoard('box-geometria', {
+        boundingbox: [-1, 6, 4, -1.5], 
+        axis: true, 
+        showCopyright: false,
+        keepaspectratio: false
+      });
+
+      // 1. Curva da Função f(x) = 0.5*x² + 0.5
+      var f = board.create('functiongraph', [x => 0.5 * x * x + 0.5], {
+        strokeColor: '#818cf8', 
+        strokeWidth: 3,
+        name: 'f(x)'
+      });
+
+      // 2. Ponto P deslizante sobre a curva
+      var P = board.create('glider', [1, 1, f], {
+        name: 'P (x₀, f(x₀))', 
+        color: '#f43f5e', 
+        fillColor: '#f43f5e',
+        size: 5,
+        label: { offset: [10, 10], color: '#fda4af', fontWeight: 'bold' }
+      });
+
+      // 3. Comprimento da reta finita (Alcance para a esquerda e direita a partir do ponto P)
+      var L = 0.8; // <--- Altere este valor para deixar a reta mais curta ou mais longa!
+
+      // Ponto Extremo Esquerdo da Tangente Finita
+      var P1 = board.create('point', [
+        function() { return P.X() - L; },
+        function() { 
+          var m = P.X(); // Derivada f'(x) = x para f(x) = 0.5x² + 0.5
+          return P.Y() - m * L; 
+        }
+      ], { visible: false });
+
+      // Ponto Extremo Direito da Tangente Finita
+      var P2 = board.create('point', [
+        function() { return P.X() + L; },
+        function() { 
+          var m = P.X(); 
+          return P.Y() + m * L; 
+        }
+      ], { visible: false });
+
+      // 4. Reta Tangente FINITA (Segmento de P1 até P2)
+      board.create('segment', [P1, P2], {
+        strokeColor: '#f43f5e', 
+        strokeWidth: 3, 
+        name: 'Reta Tangente Finita'
+      });
+
+      // 5. Área da Integral
+      board.create('integral', [[0, 2], f], {
+        color: '#10b981', 
+        fillOpacity: 0.25
+      });
+
+      // 6. Rótulo Dinâmico do Coeficiente Angular
+      // 6. Rótulo Dinâmico com MathJax
+      board.create('text', [
+        0.2, 5.2, 
+        function() {
+          var x0 = P.X().toFixed(2);
+          var m = P.X().toFixed(2);
+          return `\\text{Inclinação da Tangente: } m = f'(${x0}) = ${m}`;
+        }
+      ], {
+        fontSize: 13,
+        color: '#f43f5e',
+        useMathJax: true, // <--- Habilita a interpretação do \text{...}
+        parse: true,
+        cssClass: 'font-mono bg-slate-950/90 px-3 py-2 rounded-lg border border-rose-500/30'
+      });
+    }
+
+    // Integração Backend Python
+    async function mandarParaOPython() {
+      const expressao = encodeURIComponent(document.getElementById('input-funcao').value);
+      const x0 = document.getElementById('input-x0').value;
+      const a = document.getElementById('input-a').value;
+      const b = document.getElementById('input-b').value;
+
+      try {
+        const resposta = await fetch(`http://127.0.0.1:8000/calcular?expressao=${expressao}&x0=${x0}&a=${a}&b=${b}`);
+        const dados = await resposta.json();
+
+        if (dados.status === 'sucesso') {
+          document.getElementById('painel-resultado').classList.remove('hidden');
+          
+          // Renderiza títulos
+          katex.render("f'(x) = " + dados.derivada_latex, document.getElementById('resultado-derivada'));
+          katex.render("\\int f(x)dx = " + dados.integral_latex + " + C", document.getElementById('resultado-integral'));
+          document.getElementById('resultado-definitida').innerText = dados.area_definitida;
+
+          // Exibe o resultado no ponto x0 com alerta caso seja indefinido
+          const elPonto = document.getElementById('resultado-ponto');
+          if (dados.status_ponto === 'alerta') {
+            elPonto.className = "font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/30";
+            elPonto.innerText = `${dados.derivada_no_ponto} (para x₀ = ${x0})`;
+          } else {
+            elPonto.className = "font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/30";
+            elPonto.innerText = `f'(${x0}) = ${dados.derivada_no_ponto}`;
+          }
+
+          // Renderiza passos da Derivada
+          const divPassosDerivada = document.getElementById('passos-derivada');
+          divPassosDerivada.innerHTML = dados.passos_derivada.map(p => `<p>${p}</p>`).join('');
+          
+          // Renderiza passos da Integral
+          const divPassosIntegral = document.getElementById('passos-integral');
+          divPassosIntegral.innerHTML = dados.passos_integral.map(p => `<p>${p}</p>`).join('');
+
+          // Força o KaTeX a reprocessar a matemática nos passos dinâmicos
+          renderMathInElement(document.getElementById('painel-resultado'), {
+            delimiters: [{left: '$', right: '$', display: false}]
+          });
+
+        } else {
+          alert("Erro no backend: " + dados.mensagem);
+        }
+      } catch (err) {
+        alert("Garanta que o uvicorn esteja rodando no terminal!");
+      }
+    }
+
+    // Converte automaticamente as expressões $...$ em notação matemática formatada
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false
+      });
+      initGrafico();
+    });
+  </script>
+</body>
+</html>
