@@ -21,43 +21,56 @@ app.add_middleware(
 )
 
 def tratar_expressao(expr: str) -> str:
-    """Trata a entrada do usuário para aceitar sintaxe matemática humana."""
+    """Trata a entrada do usuário para aceitar sintaxe matemática humana sem quebrar funções trigonométricas."""
     if not expr:
         return expr
 
-    # 1. Converte caracteres Unicode sobrescritos (ex: ², ³, ⁴, ⁻³) para formato '^'
+    # 1. Converte caracteres Unicode sobrescritos (ex: ², ³, ⁴, ⁻³)
     padrao_sobrescritos = r'([\u00B2\u00B3\u00B9\u2070-\u209C]+)'
     def reemp_sobrescrito(match):
         texto = unicodedata.normalize('NFKC', match.group(1))
         return f"^({texto})"
     expr = re.sub(padrao_sobrescritos, reemp_sobrescrito, expr)
 
-    # 2. Transforma '^' em '**' (padrão Python/SymPy)
+    # 2. Transforma '^' em '**'
     expr = expr.replace('^', '**')
 
-    # 3. Substitui ponto de multiplicação por '*' (sem afetar números decimais como 3.14)
+    # Lista de funções matemáticas conhecidas para proteger
+    funcoes = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'exp', 'sqrt']
+    
+    # Insere '*' entre número/variável e funções (ex: xcos -> x*cos | 2sin -> 2*sin)
+    for func in funcoes:
+        expr = re.sub(rf'([0-9a-zA-Z\)])\s*{func}', rf'\1*{func}', expr)
+
+    # 3. Substitui ponto de multiplicação por '*'
     expr = re.sub(r'(\d)\.(?=[a-zA-Z\(])', r'\1*', expr)
     expr = re.sub(r'([a-zA-Z\)])\.(?=[a-zA-Z0-9\(])', r'\1*', expr)
 
-    # 4. Multiplicação implícita (ex: 2x -> 2*x | 2(x+1) -> 2*(x+1))
-    expr = re.sub(r'(\d)\s*([a-zA-Z\(])', r'\1*\2', expr)
-
-    # 5. Multiplicação entre variáveis/parênteses (ex: x y -> x*y | (x+1)(x-1) -> (x+1)*(x-1))
-    expr = re.sub(r'([a-zA-Z\)])\s*([a-zA-Z\(])', r'\1*\2', expr)
-    expr = re.sub(r'(\))\s*(\d)', r'\1*\2', expr)
+    # 4. Multiplicação implícita genérica (evitando quebrar nomes de funções)
+    # Número seguido de 'x' ou parêntese
+    expr = re.sub(r'(\d)\s*([xX\(])', r'\1*\2', expr)
+    # Fecha parêntese seguido de número ou parêntese/variável
+    expr = re.sub(r'(\))\s*([\dxX\(])', r'\1*\2', expr)
 
     return expr
+
+def para_float_seguro(val):
+    """Converte valores do SymPy para float com segurança."""
+    try:
+        res = complex(sp.N(val))
+        if abs(res.imag) < 1e-9:  # Se a parte imaginária for desprezível
+            return round(res.real, 4)
+        return "⚠️ Resultado Complexo/Não Real"
+    except Exception:
+        return None
 
 def gerar_passos_derivada(f, x):
     """Gera uma explicação didática dos passos da derivada."""
     passos = []
-    
-    # Verifica se é soma/subtração
     if f.is_Add:
         passos.append("• **Regra da Soma/Diferença**: Deriva-se cada termo individualmente.")
         for arg in f.args:
             passos.append(f"  - Derivada de ${sp.latex(arg)}$ é ${sp.latex(sp.diff(arg, x))}$")
-    # Verifica se é produto
     elif f.is_Mul:
         passos.append("• **Regra do Produto**: $(u \\cdot v)' = u'v + uv'$")
         u, v = f.args[0], sp.Mul(*f.args[1:])
@@ -74,7 +87,6 @@ def formatar_passos_integral(step, nivel=0):
     """Converte a árvore de passos do SymPy manualintegrate em texto explicativo em LaTeX."""
     linhas = []
     indent = "  " * nivel
-    
     tipo = type(step).__name__
     
     if tipo == 'ConstantRule':
@@ -109,7 +121,6 @@ def calcular(
     try:
         x = sp.Symbol("x")
         
-        # --- AQUI: Trata a expressão antes de enviar para o SymPy ---
         expressao_limpa = tratar_expressao(expressao)
         f = sp.sympify(expressao_limpa)
         
@@ -121,22 +132,20 @@ def calcular(
         status_ponto = "sucesso"
         try:
             val_x0 = f_linha.subs(x, x0)
-            
-            # Checa se é infinito (oo, zoo), indefinição ou indeterminação (NaN)
             if val_x0 in (sp.oo, -sp.oo, sp.zoo) or val_x0.has(sp.nan):
-                derivada_no_ponto = "⚠️ Indefinido / Indeterminado (Divisão por zero ou não derivável)"
+                derivada_no_ponto = "⚠️ Indefinido / Indeterminado"
                 status_ponto = "alerta"
             else:
-                val_num = float(val_x0.evalf())
-                derivada_no_ponto = f"{round(val_num, 4)}"
+                num = para_float_seguro(val_x0)
+                derivada_no_ponto = str(num) if num is not None else "⚠️ Erro de conversão"
         except Exception:
-            # Caso a substituição direta falhe, calcula via Limite
             lim = sp.limit(f_linha, x, x0)
             if lim in (sp.oo, -sp.oo, sp.zoo) or lim.has(sp.nan):
-                derivada_no_ponto = "⚠️ Indefinido (O limite no ponto tende ao infinito ou não existe)"
+                derivada_no_ponto = "⚠️ Indefinido"
                 status_ponto = "alerta"
             else:
-                derivada_no_ponto = f"{round(float(lim.evalf()), 4)}"
+                num = para_float_seguro(lim)
+                derivada_no_ponto = str(num) if num is not None else "⚠️ Indefinido"
 
         # 3. Integral Indefinida e seus passos
         F_integral = sp.integrate(f, x)
@@ -152,7 +161,8 @@ def calcular(
             if area in (sp.oo, -sp.oo, sp.zoo) or area.has(sp.nan):
                 area_formatada = "⚠️ Integral Divergente no intervalo"
             else:
-                area_formatada = str(round(float(area.evalf()), 4))
+                num_area = para_float_seguro(area)
+                area_formatada = str(num_area) if num_area is not None else "⚠️ Erro ao avaliar área"
         except Exception:
             area_formatada = "⚠️ Indefinido no intervalo indicado"
 
