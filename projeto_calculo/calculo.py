@@ -1,11 +1,13 @@
+import re
+import unicodedata
+import sympy as sp
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import sympy as sp
 from sympy.integrals.manualintegrate import manualintegrate, integral_steps
 
 app = FastAPI()
+
 @app.get("/")
 def home():
     return FileResponse("index.html")
@@ -17,6 +19,34 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+def tratar_expressao(expr: str) -> str:
+    """Trata a entrada do usuário para aceitar sintaxe matemática humana."""
+    if not expr:
+        return expr
+
+    # 1. Converte caracteres Unicode sobrescritos (ex: ², ³, ⁴, ⁻³) para formato '^'
+    padrao_sobrescritos = r'([\u00B2\u00B3\u00B9\u2070-\u209C]+)'
+    def reemp_sobrescrito(match):
+        texto = unicodedata.normalize('NFKC', match.group(1))
+        return f"^({texto})"
+    expr = re.sub(padrao_sobrescritos, reemp_sobrescrito, expr)
+
+    # 2. Transforma '^' em '**' (padrão Python/SymPy)
+    expr = expr.replace('^', '**')
+
+    # 3. Substitui ponto de multiplicação por '*' (sem afetar números decimais como 3.14)
+    expr = re.sub(r'(\d)\.(?=[a-zA-Z\(])', r'\1*', expr)
+    expr = re.sub(r'([a-zA-Z\)])\.(?=[a-zA-Z0-9\(])', r'\1*', expr)
+
+    # 4. Multiplicação implícita (ex: 2x -> 2*x | 2(x+1) -> 2*(x+1))
+    expr = re.sub(r'(\d)\s*([a-zA-Z\(])', r'\1*\2', expr)
+
+    # 5. Multiplicação entre variáveis/parênteses (ex: x y -> x*y | (x+1)(x-1) -> (x+1)*(x-1))
+    expr = re.sub(r'([a-zA-Z\)])\s*([a-zA-Z\(])', r'\1*\2', expr)
+    expr = re.sub(r'(\))\s*(\d)', r'\1*\2', expr)
+
+    return expr
 
 def gerar_passos_derivada(f, x):
     """Gera uma explicação didática dos passos da derivada."""
@@ -78,7 +108,10 @@ def calcular(
 ):
     try:
         x = sp.Symbol("x")
-        f = sp.sympify(expressao)
+        
+        # --- AQUI: Trata a expressão antes de enviar para o SymPy ---
+        expressao_limpa = tratar_expressao(expressao)
+        f = sp.sympify(expressao_limpa)
         
         # 1. Derivada e seus passos
         f_linha = sp.diff(f, x)
