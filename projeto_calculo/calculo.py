@@ -28,17 +28,28 @@ def tratar_expressao(expr: str) -> str:
     # 1. Converter tudo para minúsculo
     expr = expr.lower()
 
-    # 2. Equivalências (Aliases) - Substitui variações em PT/EN antes de qualquer coisa
+    # 2. Dicionário Unificado de Equivalências (Aliases) - PT/EN e variações comuns
     equivalencias = {
-        'sen': 'sin',
-        'tg': 'tan',
-        'arctg': 'atan',
-        'arctan': 'atan',
-        'arcsen': 'asin',
-        'arcsin': 'asin'
+        # Trigonométricas Diretas
+        'sen': 'sin', 'tg': 'tan', 'ctg': 'cot', 'cotan': 'cot', 'cosec': 'csc',
+        # Trigonométricas Inversas
+        'arcsen': 'asin', 'arcsin': 'asin', 'sen^-1': 'asin', 'sin^-1': 'asin',
+        'arccos': 'acos', 'cos^-1': 'acos',
+        'arctg': 'atan', 'arctan': 'atan', 'tan^-1': 'atan', 'tg^-1': 'atan',
+        'arcsec': 'asec', 'sec^-1': 'asec',
+        'arccsc': 'acsc', 'csc^-1': 'acsc',
+        'arccot': 'acot', 'cot^-1': 'acot', 'ctg^-1': 'acot',
+        # Hiperbólicas Diretas e Inversas
+        'senh': 'sinh', 'tgh': 'tanh',
+        'arcsinh': 'asinh', 'asenh': 'asinh',
+        'arccosh': 'acosh',
+        'arctanh': 'atanh', 'atgh': 'atanh'
     }
-    for termo, original in equivalencias.items():
-        expr = re.sub(rf'\b{termo}\b', original, expr)
+    
+    # Ordenar as chaves por tamanho decrescente para evitar conflito (ex: 'sen' vs 'senh')
+    for termo in sorted(equivalencias.keys(), key=len, reverse=True):
+        original = equivalencias[termo]
+        expr = expr.replace(termo, original)
 
     # 3. Converte caracteres Unicode sobrescritos (ex: ², ³, etc.)
     padrao_sobrescritos = r'([\u00B2\u00B3\u00B9\u2070-\u209C]+)'
@@ -50,10 +61,12 @@ def tratar_expressao(expr: str) -> str:
     # 4. Transforma '^' em '**'
     expr = expr.replace('^', '**')
 
-    # Lista completa de funções para processamento
+    # Lista completa de funções mapeadas para processamento
     funcoes = [
         'sinh', 'cosh', 'tanh', 'sech', 'csch', 'coth',
-        'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 
+        'asinh', 'acosh', 'atanh',
+        'sin', 'cos', 'tan', 'sec', 'csc', 'cot',
+        'asin', 'acos', 'atan', 'asec', 'acsc', 'acot',
         'log', 'ln', 'exp', 'sqrt'
     ]
 
@@ -80,25 +93,99 @@ def para_float_seguro(val):
     """Converte valores do SymPy para float com segurança."""
     try:
         res = complex(sp.N(val))
-        if abs(res.imag) < 1e-9:  # Se a parte imaginária for desprezível
+        if abs(res.imag) < 1e-9:
             return round(res.real, 4)
         return "⚠️ Resultado Complexo/Não Real"
     except Exception:
         return None
 
 def gerar_passos_derivada(f, x):
-    """Gera uma explicação didática dos passos da derivada, tratando equivalências e simplificações."""
+    """Gera uma explicação didática dos passos da derivada usando o banco de deduções tabeladas."""
     passos = []
     
-    # Tratamento especial para a tangente para evitar o formato 'tan(x)**2 + 1'
-    if f == sp.tan(x):
-        f_linha = 1 / (sp.cos(x)**2)  # Equivalente a sec^2(x)
-        passos.append("• **Definição / Derivada Trigonométrica Fundamental**: A derivada de $\\tan(x)$ é deduzida utilizando a regra do quociente ou relação fundamental.")
-        passos.append(f"• **Passo Intermediário**: Utilizando a identidade trigonométrica, obtemos $\\sec^2(x)$.")
-        passos.append(f"• **Resultado Simplificado**: $f'(x) = {sp.latex(f_linha)}$")
+    # BANCO DE DEDUÇÕES TABELADAS (Para funções puras em x)
+    deducoes_tabela = {
+        sp.sin(x): [
+            "• **Derivada Fundamental**: A derivada do $\\sin(x)$ é calculada pelo limite do quociente de Newton, resultando diretamente em $\\cos(x)$."
+        ],
+        sp.cos(x): [
+            "• **Derivada Fundamental**: A derivada do $\\cos(x)$ resulta no valor negativo do seno, ou seja, $-\\sin(x)$."
+        ],
+        sp.tan(x): [
+            "• **Dedução via Regra do Quociente**: Reescrevemos $\\tan(x) = \\frac{\\sin(x)}{\\cos(x)}$.",
+            "• Aplicando $\\left(\\frac{u}{v}\\right)' = \\frac{u'v - uv'}{v^2}$, temos: $\\frac{\\cos(x)\\cos(x) - \\sin(x)(-\\sin(x))}{\\cos^2(x)}$",
+            "• Usando a Identidade Fundamental $\\sin^2(x) + \\cos^2(x) = 1$, obtemos $\\frac{1}{\\cos^2(x)} = \\sec^2(x)$."
+        ],
+        sp.sec(x): [
+            "• **Dedução**: Reescrevemos $\\sec(x) = (\\cos(x))^{-1}$.",
+            "• Aplicando a regra da potência e da cadeia: $-1(\\cos(x))^{-2} \\cdot (-\\sin(x)) = \\frac{\\sin(x)}{\\cos^2(x)}$",
+            "• Separando as frações, obtemos: $\\frac{1}{\\cos(x)} \\cdot \\frac{\\sin(x)}{\\cos(x)} = \\sec(x)\\tan(x)$."
+        ],
+        sp.cot(x): [
+            "• **Dedução via Regra do Quociente**: Reescrevemos $\\cot(x) = \\frac{\\cos(x)}{\\sin(x)}$.",
+            "• Aplicando a regra do quociente, o numerador torna-se $-\\sin^2(x) - \\cos^2(x) = -1$.",
+            "• O resultado final consolidado é $-\\frac{1}{\\sin^2(x)} = -\\csc^2(x)$."
+        ],
+        sp.csc(x): [
+            "• **Dedução**: Reescrevemos $\\csc(x) = (\\sin(x))^{-1}$.",
+            "• Derivando via regra da cadeia: $-1(\\sin(x))^{-2} \\cdot \\cos(x) = -\\frac{\\cos(x)}{\\sin^2(x)}$.",
+            "• Simplificando a expressão trigonométrica, chegamos a $-\\csc(x)\\cot(x)$."
+        ],
+        sp.asin(x): [
+            "• **Dedução via Derivação Implícita**: Seja $y = \\arcsin(x) \\implies \\sin(y) = x$.",
+            "• Derivando implicitamente em relação a $x$: $\\cos(y) \\cdot y' = 1 \\implies y' = \\frac{1}{\\cos(y)}$.",
+            "• Usando a relação $\\cos(y) = \\sqrt{1 - \\sin^2(y)}$ e substituindo $\\sin(y) = x$, chegamos a $\\frac{1}{\\sqrt{1 - x^2}}$."
+        ],
+        sp.acos(x): [
+            "• **Dedução via Derivação Implícita**: Seja $y = \\arccos(x) \\implies \\cos(y) = x$.",
+            "• Derivando implicitamente em relação a $x$: $-\\sin(y) \\cdot y' = 1 \\implies y' = -\\frac{1}{\\sin(y)}$.",
+            "• Substituindo pela identidade trigonométrica fundamental, obtemos $-\\frac{1}{\\sqrt{1 - x^2}}$."
+        ],
+        sp.atan(x): [
+            "• **Dedução via Derivação Implícita**: Seja $y = \\arctan(x) \\implies \\tan(y) = x$.",
+            "• Derivando implicitamente em relação a $x$: $\\sec^2(y) \\cdot y' = 1 \\implies y' = \\frac{1}{\\sec^2(y)}$.",
+            "• Utilizando a identidade geométrica $\\sec^2(y) = 1 + \\tan^2(y)$ e trocando por $x$, temos $\\frac{1}{1 + x^2}$."
+        ],
+        sp.asec(x): [
+            "• **Dedução via Derivação Implícita**: Seja $y = \\arcsec(x) \\implies \\sec(y) = x$.",
+            "• Derivando implicitamente: $\\sec(y)\\tan(y) \\cdot y' = 1 \\implies y' = \\frac{1}{\\sec(y)\\tan(y)}$.",
+            "• Como $\\tan(y) = \\sqrt{\\sec^2(y) - 1}$ e $\\sec(y) = x$, obtemos $\\frac{1}{|x|\\sqrt{x^2 - 1}}$."
+        ],
+        sp.acsc(x): [
+            "• **Dedução via Derivação Implícita**: Seja $y = \\arccsc(x) \\implies \\csc(y) = x$.",
+            "• Derivando implicitamente: $-\\csc(y)\\cot(y) \\cdot y' = 1 \\implies y' = -\\frac{1}{\\csc(y)\\cot(y)}$.",
+            "• Substituindo as identidades correspondentes, resulta em $-\\frac{1}{|x|\\sqrt{x^2 - 1}}$."
+        ],
+        sp.acot(x): [
+            "• **Dedução via Derivação Implícita**: Seja $y = \\arccot(x) \\implies \\cot(y) = x$.",
+            "• Derivando implicitamente: $-\\csc^2(y) \\cdot y' = 1 \\implies y' = -\\frac{1}{\\csc^2(y)}$.",
+            "• Como $\\csc^2(y) = 1 + \\cot^2(y)$, substituímos para obter $-\\frac{1}{1 + x^2}$."
+        ],
+        sp.asinh(x): [
+            "• **Dedução via Derivação Implícita**: Seja $y = \\text{arcsinh}(x) \\implies \\sinh(y) = x$.",
+            "• Derivando implicitamente: $\\cosh(y) \\cdot y' = 1 \\implies y' = \\frac{1}{\\cosh(y)}$.",
+            "• Usando a relação fundamental hiperbólica $\\cosh(y) = \\sqrt{1 + \\sinh^2(y)}$, temos $\\frac{1}{\\sqrt{x^2 + 1}}$."
+        ],
+        sp.acosh(x): [
+            "• **Dedução via Derivação Implícita**: Seja $y = \\text{arccosh}(x) \\implies \\cosh(y) = x$.",
+            "• Derivando implicitamente: $\\sinh(y) \\cdot y' = 1 \\implies y' = \\frac{1}{\\sinh(y)}$.",
+            "• Utilizando a identidade $\\sinh(y) = \\sqrt{\\cosh^2(y) - 1}$, chegamos a $\\frac{1}{\\sqrt{x^2 - 1}}$."
+        ],
+        sp.atanh(x): [
+            "• **Dedução via Derivação Implícita**: Seja $y = \\text{arctanh}(x) \\implies \\tanh(y) = x$.",
+            "• Derivando implicitamente: $\\text{sech}^2(y) \\cdot y' = 1 \\implies y' = \\frac{1}{\\text{sech}^2(y)}$.",
+            "• Como $\\text{sech}^2(y) = 1 - \\tanh^2(y)$, substituímos para obter $\\frac{1}{1 - x^2}$."
+        ]
+    }
+
+    # Se a função f coincidir perfeitamente com um elemento da nossa tabela
+    if f in deducoes_tabela:
+        f_linha = sp.diff(f, x)
+        passos.extend(deducoes_tabela[f])
+        passos.append(f"• **Resultado Concluído**: $f'(x) = {sp.latex(f_linha)}$")
         return f_linha, passos
 
-    # Demais funções
+    # Regras Estruturais Genéricas para outras expressões compostas
     if f.is_Add:
         passos.append("• **Regra da Soma/Diferença**: Deriva-se cada termo individualmente.")
         for arg in f.args:
@@ -109,10 +196,9 @@ def gerar_passos_derivada(f, x):
         passos.append(f"  - $u = {sp.latex(u)} \\implies u' = {sp.latex(sp.diff(u, x))}$")
         passos.append(f"  - $v = {sp.latex(v)} \\implies v' = {sp.latex(sp.diff(v, x))}$")
     else:
-        passos.append("• **Aplicação Direta / Regra da Cadeia**: Aplicando as regras fundamentais de derivação.")
+        passos.append("• **Aplicação de Regras Gerais / Regra da Cadeia**: Desenvolvendo blocos internos e externos.")
 
     f_linha = sp.diff(f, x)
-    # Tenta usar simplificação trigonométrica se houver funções trigonométricas
     f_linha_simp = sp.trigsimp(f_linha)
     
     passos.append(f"• **Resultado Simplificado**: $f'(x) = {sp.latex(f_linha_simp)}$")
@@ -140,7 +226,8 @@ def formatar_passos_integral(step, nivel=0):
         linhas.append(f"{indent}  - $u = {sp.latex(step.u)}$, $dv = {sp.latex(step.v_step)}$")
         linhas.extend(formatar_passos_integral(step.substep, nivel + 1))
     elif tipo == 'AlternativeRule':
-        linhas.extend(formatar_passos_integral(step.alternatives[0], nivel))
+        if step.alternatives:
+            linhas.extend(formatar_passos_integral(step.alternatives[0], nivel))
     else:
         linhas.append(f"{indent}• **Técnica Específica/Tabela**: Aplicação de identidade ou substituição fundamental.")
         
@@ -159,7 +246,7 @@ def calcular(
         expressao_limpa = tratar_expressao(expressao)
         f = sp.sympify(expressao_limpa)
         
-        # 1. Derivada e seus passos (agora capturando a versão limpa e os passos detalhados)
+        # 1. Derivada e seus passos detalhados
         f_linha, passos_derivada = gerar_passos_derivada(f, x)
 
         # 2. Avaliação da Derivada no ponto x0
@@ -206,9 +293,9 @@ def calcular(
             "passos_derivada": passos_derivada,
             "derivada_no_ponto": derivada_no_ponto,
             "status_ponto": status_ponto,
-            "integral_latex": sp.latex(F_integral),
+            "integral_indefinida_latex": sp.latex(F_integral),
             "passos_integral": passos_integral,
-            "area_definitida": area_formatada
+            "area_definida": area_formatada
         }
     except Exception as e:
-        return {"status": "erro", "mensagem": str(e)}
+        return {"status": "erro", "detalhes": str(e)}
