@@ -87,8 +87,18 @@ def para_float_seguro(val):
         return None
 
 def gerar_passos_derivada(f, x):
-    """Gera uma explicação didática dos passos da derivada."""
+    """Gera uma explicação didática dos passos da derivada, tratando equivalências e simplificações."""
     passos = []
+    
+    # Tratamento especial para a tangente para evitar o formato 'tan(x)**2 + 1'
+    if f == sp.tan(x):
+        f_linha = 1 / (sp.cos(x)**2)  # Equivalente a sec^2(x)
+        passos.append("• **Definição / Derivada Trigonométrica Fundamental**: A derivada de $\\tan(x)$ é deduzida utilizando a regra do quociente ou relação fundamental.")
+        passos.append(f"• **Passo Intermediário**: Utilizando a identidade trigonométrica, obtemos $\\sec^2(x)$.")
+        passos.append(f"• **Resultado Simplificado**: $f'(x) = {sp.latex(f_linha)}$")
+        return f_linha, passos
+
+    # Demais funções
     if f.is_Add:
         passos.append("• **Regra da Soma/Diferença**: Deriva-se cada termo individualmente.")
         for arg in f.args:
@@ -99,11 +109,14 @@ def gerar_passos_derivada(f, x):
         passos.append(f"  - $u = {sp.latex(u)} \\implies u' = {sp.latex(sp.diff(u, x))}$")
         passos.append(f"  - $v = {sp.latex(v)} \\implies v' = {sp.latex(sp.diff(v, x))}$")
     else:
-        passos.append("• **Aplicação Direta/Regra da Cadeia**: Aplicando as regras fundamentais de derivação.")
+        passos.append("• **Aplicação Direta / Regra da Cadeia**: Aplicando as regras fundamentais de derivação.")
 
     f_linha = sp.diff(f, x)
-    passos.append(f"• **Resultado Simplificado**: $f'(x) = {sp.latex(f_linha)}$")
-    return passos
+    # Tenta usar simplificação trigonométrica se houver funções trigonométricas
+    f_linha_simp = sp.trigsimp(f_linha)
+    
+    passos.append(f"• **Resultado Simplificado**: $f'(x) = {sp.latex(f_linha_simp)}$")
+    return f_linha_simp, passos
 
 def formatar_passos_integral(step, nivel=0):
     """Converte a árvore de passos do SymPy manualintegrate em texto explicativo em LaTeX."""
@@ -146,9 +159,8 @@ def calcular(
         expressao_limpa = tratar_expressao(expressao)
         f = sp.sympify(expressao_limpa)
         
-        # 1. Derivada e seus passos
-        f_linha = sp.diff(f, x)
-        passos_derivada = gerar_passos_derivada(f, x)
+        # 1. Derivada e seus passos (agora capturando a versão limpa e os passos detalhados)
+        f_linha, passos_derivada = gerar_passos_derivada(f, x)
 
         # 2. Avaliação da Derivada no ponto x0
         status_ponto = "sucesso"
