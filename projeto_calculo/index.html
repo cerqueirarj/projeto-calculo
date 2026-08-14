@@ -481,7 +481,7 @@
       const b = document.getElementById('input-b').value;
 
       try {
-        const resposta = await fetch(`http://127.0.0.1:8000/calcular?expressao=${expressao}&x0=${x0}&a=${a}&b=${b}`);
+        const resposta = await fetch(`/calcular?expressao=${expressao}&x0=${x0}&a=${a}&b=${b}`);
         const dados = await resposta.json();
 
         if (dados.status === 'sucesso') {
