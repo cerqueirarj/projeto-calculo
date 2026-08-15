@@ -228,6 +228,8 @@ def formatar_passos_integral(step, nivel=0):
     elif tipo == 'AlternativeRule':
         if step.alternatives:
             linhas.extend(formatar_passos_integral(step.alternatives[0], nivel))
+        else:
+            linhas.append(f"{indent}• **Técnica Específica/Tabela**: Aplicação de identidade ou substituição fundamental.")
     else:
         linhas.append(f"{indent}• **Técnica Específica/Tabela**: Aplicação de identidade ou substituição fundamental.")
         
@@ -235,20 +237,19 @@ def formatar_passos_integral(step, nivel=0):
 
 @app.get("/calcular")
 def calcular(
-    expressao: str = "x**2 * sin(x)", 
-    x0: float = 1.0, 
-    a: float = 0.0, 
+    expressao: str = "x**2 * sin(x)",
+    x0: float = 1.0,
+    a: float = 0.0,
     b: float = 3.14
 ):
     try:
         x = sp.Symbol("x")
-        
         expressao_limpa = tratar_expressao(expressao)
         f = sp.sympify(expressao_limpa)
         
         # 1. Derivada e seus passos detalhados
         f_linha, passos_derivada = gerar_passos_derivada(f, x)
-
+        
         # 2. Avaliação da Derivada no ponto x0
         status_ponto = "sucesso"
         try:
